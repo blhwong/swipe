@@ -1,0 +1,8 @@
+
+Create a single view application that allows the user to view a series of images. 
+
+Requirements:
+Dragging left/right changes index of visible image. 
+Dragging 60% of the image width advances through all of the frames.
+Maintain image aspect ratio.
+Scale image to fit screen.
