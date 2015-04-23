@@ -10,12 +10,15 @@ Description: Application that swipes frames of given images from drawable
 
 package com.wongapps.swipe;
 
-import android.support.v7.app.ActionBarActivity;
-import android.support.v4.app.Fragment;
+import android.app.Notification.Action;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.Fragment;
+import android.support.v4.content.res.ResourcesCompat;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Display;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -27,17 +30,17 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 
 
 public class MainActivity extends ActionBarActivity implements OnClickListener{
 	
 
-	private Integer[] mImage = {R.drawable.frame1, R.drawable.frame2, R.drawable.frame3,
+	private final Integer[] mImage = {R.drawable.frame1, R.drawable.frame2, R.drawable.frame3,
 			R.drawable.frame4, R.drawable.frame5, R.drawable.frame6, 
 			R.drawable.frame7, R.drawable.frame8, R.drawable.frame9, 
 			R.drawable.frame10, R.drawable.frame11, R.drawable.frame12, 
@@ -54,17 +57,35 @@ public class MainActivity extends ActionBarActivity implements OnClickListener{
 			R.drawable.frame43, R.drawable.frame44
 	};
 	
+	private final Integer[] cache = {R.drawable.frame1_100x100, R.drawable.frame2_100x100, R.drawable.frame3_100x100,
+			R.drawable.frame4_100x100, R.drawable.frame5_100x100, R.drawable.frame6_100x100, 
+			R.drawable.frame7_100x100, R.drawable.frame8_100x100, R.drawable.frame9_100x100, 
+			R.drawable.frame10_100x100, R.drawable.frame11_100x100, R.drawable.frame12_100x100, 
+			R.drawable.frame13_100x100, R.drawable.frame14_100x100, R.drawable.frame15_100x100, 
+			R.drawable.frame16_100x100, R.drawable.frame17_100x100, R.drawable.frame18_100x100, 
+			R.drawable.frame19_100x100, R.drawable.frame20_100x100, R.drawable.frame21_100x100, 
+			R.drawable.frame22_100x100, R.drawable.frame23_100x100, R.drawable.frame24_100x100, 
+			R.drawable.frame25_100x100, R.drawable.frame26_100x100, R.drawable.frame27_100x100, 
+			R.drawable.frame28_100x100, R.drawable.frame29_100x100, R.drawable.frame30_100x100, 
+			R.drawable.frame31_100x100, R.drawable.frame32_100x100, R.drawable.frame33_100x100, 
+			R.drawable.frame34_100x100, R.drawable.frame35_100x100, R.drawable.frame36_100x100, 
+			R.drawable.frame37_100x100, R.drawable.frame38_100x100, R.drawable.frame39_100x100, 
+			R.drawable.frame40_100x100, R.drawable.frame41_100x100, R.drawable.frame42_100x100, 
+			R.drawable.frame43_100x100, R.drawable.frame44_100x100
+	};
+	
 	ImageView imageView;
 	private GestureDetector swipeDetector;
 	View.OnTouchListener swipeListener;
 	private static final int start = 0;							//first frame
-	private static final int SWIPE_MIN_DISTANCE = 5;			//min distance of swipe
+	//private static final int SWIPE_MIN_DISTANCE = 150;			//min distance of swipe
+	private static final int SWIPE_MIN_DISTANCE = 0;
 	private static float thresholdWidth;						//60% of screen width which is initalized onCreate
 	private static int pointer;									//pointer of frame
-	
+	private static int end;
 	
 
-	@SuppressWarnings("deprecation")
+
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,13 +93,21 @@ public class MainActivity extends ActionBarActivity implements OnClickListener{
                 
         
 
-        ImageView iView = new ImageView(this);
+        final ImageView iView = new ImageView(this);
         showView(start, iView);
+        //showView(start);
+       
+        
         
         
         Display display = getWindowManager().getDefaultDisplay();
         thresholdWidth = (float) (display.getWidth() * 0.6);			//set 60% of screen width
         pointer = start;
+        end = mImage.length;
+        
+
+        
+        
         
         iView.setOnClickListener(this);
         swipeDetector = new GestureDetector(this, new MySwipeDetector());
@@ -93,113 +122,186 @@ public class MainActivity extends ActionBarActivity implements OnClickListener{
         
     }
 	
+
 	private void showView(int pointer, ImageView view)					//show frame method
+	//private void showView(int pointer)
 	{				
 		// TODO Auto-generated method stub
-		RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-        RelativeLayout mlayout = (RelativeLayout)findViewById(R.id.layout);
+		//ImageView view = (ImageView)findViewById(R.id.test);
+		final RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        final RelativeLayout mlayout = (RelativeLayout)findViewById(R.id.layout);
+        //mlayout.removeAllViews();
+        //mlayout.removeView(findViewById(R.id.test));
+        //ImageView view = new ImageView(getApplicationContext());
         view.setLayoutParams(param);
-        view.setScaleType(ScaleType.FIT_CENTER);
-        Drawable d = getResources().getDrawable(mImage[pointer]);
+        ((ImageView) view).setScaleType(ScaleType.FIT_CENTER);
+        final Drawable d = ResourcesCompat.getDrawable(getResources(), mImage[pointer], null);
         view.setImageDrawable(d);
         mlayout.addView(view);
 		
 	}
+	
+	private void runAnimation(final AnimationDrawable animation) 				//animation method
+	{
+		// TODO Auto-generated method stub
+		final RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        final RelativeLayout mlayout = (RelativeLayout)findViewById(R.id.layout);
+        //mlayout.removeAllViews();
+        //mlayout.removeAllViewsInLayout();
+        //mlayout.removeView(findViewById(R.id.test));
+        final ImageView imageAnim = new ImageView(getApplicationContext());
+        imageAnim.setLayoutParams(param);
+        imageAnim.setScaleType(ScaleType.FIT_CENTER);
+        imageAnim.setImageDrawable(animation);
+        mlayout.addView(imageAnim);
+        //animation.start();
+        
+        Handler handler = new Handler();
+        Runnable r = new Runnable(){
+        	
+        	public void run(){
+
+                animation.start();
+
+                }
+                };
+        
+        handler.postDelayed(r, 0);
+        
+        //handler.removeCallbacks(r);
+	}
+	
 
 	class MySwipeDetector extends SimpleOnGestureListener				//swipe detector
 	{
-	
 		@SuppressWarnings("deprecation")
 		@Override
-		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
+		
+		public boolean onScroll(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
 		{
 			try
 			{
-				if((e1.getX() - e2.getX()) > SWIPE_MIN_DISTANCE)		//if left swipe is greater than minimum swipe distance
+				final Handler handler = new Handler();
+				//float e2save = e2.getX();
+				//float e1x = e1.getX();
+				//float e2x = e2.getX();
+				final float leftswipe = e1.getX() - e2.getX();
+				//Log.d("e1x e2x", Float.toString(e1x) + " " + Float.toString(e2x) + " " + Float.toString(e2save));
+				Runnable r = new Runnable()
 				{
-					
-					if((e1.getX() - e2.getX()) > thresholdWidth)		//if left swipe is greater than 60% of screen
+					public void run()
 					{
 						
-						if(pointer < mImage.length - 1)					//animate to the end if not already at end
+						
+						
+						
+						final AnimationDrawable animation = new AnimationDrawable();
+						final ImageView iView = new ImageView(getApplicationContext());
+						
+						
+						if(leftswipe > SWIPE_MIN_DISTANCE)		//if left swipe is greater than minimum swipe distance
 						{
-							final AnimationDrawable animation = new AnimationDrawable();
-							for(int begin = pointer; pointer < mImage.length; pointer++)		//adding frames
+							
+							if(leftswipe < thresholdWidth)		//if left swipe is greater than 60% of screen
 							{
-								animation.addFrame(getResources().getDrawable(mImage[pointer]), 0);
+								if(pointer < end - 1)					//move to next frame if not at the end
+								{
+									pointer++;									
+									
+									showView(pointer, iView);	
+									//showView(pointer);
+									//final Toast toast = Toast.makeText(getApplicationContext(), "Left Swipe, Increment", Toast.LENGTH_SHORT);
+					    			//toast.show();
+								}
+							//e2x = e2save;
+								//else											//already at the end of frames		
+								//{
+									//final Toast toast = Toast.makeText(getApplicationContext(), "No more to increment", Toast.LENGTH_SHORT);
+					    			//toast.show();
+								//}
+								
 							}
-					        pointer = mImage.length - 1;
-					        runAnimation(animation);
-							//final Toast toast = Toast.makeText(getApplicationContext(), "Left Swipe, Animate Right", Toast.LENGTH_SHORT);
-			    			//toast.show();
-						}
-						else											//already at the end of animation
-						{
-							//final Toast toast = Toast.makeText(getApplicationContext(), "End of Animation", Toast.LENGTH_SHORT);
-			    			//toast.show();
-						}
-						
-					}
-					else												//if left swipe is less than 60% of screen
-					{
-						if(pointer < mImage.length - 1)					//move to next frame if not at the end
-						{
-							pointer++;									
-							ImageView iView = new ImageView(getApplicationContext());
-							showView(pointer, iView);					
-							//final Toast toast = Toast.makeText(getApplicationContext(), "Left Swipe, Increment", Toast.LENGTH_SHORT);
-			    			//toast.show();
-						}
-						else											//already at the end of frames		
-						{
-							//final Toast toast = Toast.makeText(getApplicationContext(), "No more to increment", Toast.LENGTH_SHORT);
-			    			//toast.show();
-						}
-						
-					}
-					
-				}
-				else if((e2.getX() - e1.getX()) > SWIPE_MIN_DISTANCE)	//if right swipe is greater than minimum swipe distance
-				{
-					if((e2.getX() - e1.getX()) > thresholdWidth)		//if right swipe is greater than 60% of the screen
-					{
-						if(pointer > start)								//animate to beginning if not already
-						{
-							final AnimationDrawable animation = new AnimationDrawable();
-							for(int begin = pointer; pointer >= start; pointer--)		//adding frames
+							else												//if left swipe is less than 60% of screen
 							{
-								animation.addFrame(getResources().getDrawable(mImage[pointer]), 0);
+								
+								if(pointer < end - 1)					//animate to the end if not already at end
+								{
+									//final AnimationDrawable animation = new AnimationDrawable();
+									for(int begin = pointer; begin < end; begin++)		//adding frames
+									{
+										
+										animation.addFrame(getResources().getDrawable(mImage[begin]), 0);
+									}
+							        pointer = end- 1;
+							        runAnimation(animation);
+							        
+							        //animation.setCallback(null);
+									//final Toast toast = Toast.makeText(getApplicationContext(), "Left Swipe, Animate Right", Toast.LENGTH_SHORT);
+					    			//toast.show();
+								}
+								//else											//already at the end of animation
+								//{
+									//final Toast toast = Toast.makeText(getApplicationContext(), "End of Animation", Toast.LENGTH_SHORT);
+					    			//toast.show();
+								//}
+								
+								
 							}
-					        pointer = start; 
-					        runAnimation(animation);
-							//final Toast toast = Toast.makeText(getApplicationContext(), "Right Swipe, Animate Left", Toast.LENGTH_SHORT);
-			    			//toast.show();
+							
+							
 						}
-						else											//already at beginning of animation
+						else if(-leftswipe > SWIPE_MIN_DISTANCE)	//if right swipe is greater than minimum swipe distance
 						{
-							//final Toast toast = Toast.makeText(getApplicationContext(), "Beginning of Animation", Toast.LENGTH_SHORT);
-			    			//toast.show();
+							if(-leftswipe < thresholdWidth)		//if right swipe is greater than 60% of the screen
+							{
+								if(pointer > start)								//move to previous frame if not at beginning
+								{
+									pointer--;
+									//ImageView iView = new ImageView(getApplicationContext());
+									showView(pointer, iView);
+									//showView(pointer);
+									//final Toast toast = Toast.makeText(getApplicationContext(), "Right Swipe, Decrement", Toast.LENGTH_SHORT);
+					    			//toast.show();
+								}
+								//else											//already at beginning of frames
+								//{
+									//final Toast toast = Toast.makeText(getApplicationContext(), "No more to decrement", Toast.LENGTH_SHORT);
+					    			//toast.show();
+								//}
+							}
+							else
+							{
+								
+								if(pointer > start)								//animate to beginning if not already
+								{
+									//final AnimationDrawable animation = new AnimationDrawable();
+									for(int begin = pointer; begin >= start; begin--)		//adding frames
+									{
+										animation.addFrame(getResources().getDrawable(mImage[begin]), 0);
+									}
+							        pointer = start; 
+							        runAnimation(animation);
+							        //animation.setCallback(null);
+									//final Toast toast = Toast.makeText(getApplicationContext(), "Right Swipe, Animate Left", Toast.LENGTH_SHORT);
+					    			//toast.show();
+								}
+								
+								//else											//already at beginning of animation
+								//{
+									//final Toast toast = Toast.makeText(getApplicationContext(), "Beginning of Animation", Toast.LENGTH_SHORT);
+					    			//toast.show();
+								//}
+								
+							}
 						}
-						
 					}
-					else
-					{
-						if(pointer > start)								//move to previous frame if not at beginning
-						{
-							pointer--;
-							ImageView iView = new ImageView(getApplicationContext());
-							showView(pointer, iView);
-							//final Toast toast = Toast.makeText(getApplicationContext(), "Right Swipe, Decrement", Toast.LENGTH_SHORT);
-			    			//toast.show();
-						}
-						else											//already at beginning of frames
-						{
-							//final Toast toast = Toast.makeText(getApplicationContext(), "No more to decrement", Toast.LENGTH_SHORT);
-			    			//toast.show();
-						}
-					}
-				}
-
+				};
+				
+				handler.postDelayed(r, 0);
+				
+				
+		
+				
 			}
 			catch(Exception e)
 			{
@@ -207,34 +309,17 @@ public class MainActivity extends ActionBarActivity implements OnClickListener{
 			}
 			return false;
 			
-		}
-
-		private void runAnimation(final AnimationDrawable animation) 				//animation method
-		{
-			// TODO Auto-generated method stub
-			RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-	        RelativeLayout mlayout = (RelativeLayout)findViewById(R.id.layout);
-	        ImageView imageAnim = new ImageView(getApplicationContext());
-	        imageAnim.setLayoutParams(param);
-	        imageAnim.setScaleType(ScaleType.FIT_CENTER);
-	        imageAnim.setImageDrawable(animation);
-	        mlayout.addView(imageAnim);
-	        Handler handler = new Handler();
-	        handler.postDelayed(new Runnable(){
-
-	        public void run(){
-
-	        animation.start();
-
-	        }
-	        }, 0);
 			
 		}
 		
 		
+		
+		
 	}
+	
 
 
+	@Override
     public void onClick(View v)
     {
     	
